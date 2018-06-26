@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
 
 namespace Renci.SshNet.Tests.Classes
 {
@@ -268,12 +269,12 @@ namespace Renci.SshNet.Tests.Classes
                 //  Calculate has value
                 using (var stream = File.OpenRead(uploadedFileName))
                 {
-                    scp.Upload(stream, Path.GetFileName(uploadedFileName));
+                    scp.Upload(stream, Path.GetFileName(uploadedFileName), CancellationToken.None);
                 }
 
                 using (var stream = File.OpenWrite(downloadedFileName))
                 {
-                    scp.Download(Path.GetFileName(uploadedFileName), stream);
+                    scp.Download(Path.GetFileName(uploadedFileName), stream, CancellationToken.None);
                 }
 
                 //  Calculate MD5 value
@@ -341,12 +342,12 @@ namespace Renci.SshNet.Tests.Classes
                 //  Calculate has value
                 using (var stream = File.OpenRead(uploadedFileName))
                 {
-                    scp.Upload(stream, Path.GetFileName(uploadedFileName));
+                    scp.Upload(stream, Path.GetFileName(uploadedFileName), CancellationToken.None);
                 }
 
                 using (var stream = File.OpenWrite(downloadedFileName))
                 {
-                    scp.Download(Path.GetFileName(uploadedFileName), stream);
+                    scp.Download(Path.GetFileName(uploadedFileName), stream, CancellationToken.None);
                 }
 
                 //  Calculate MD5 value
@@ -487,7 +488,7 @@ namespace Renci.SshNet.Tests.Classes
             ScpClient target = new ScpClient(connectionInfo); // TODO: Initialize to an appropriate value
             Stream source = null; // TODO: Initialize to an appropriate value
             string filename = string.Empty; // TODO: Initialize to an appropriate value
-            target.Upload(source, filename);
+            target.Upload(source, filename, CancellationToken.None);
             Assert.Inconclusive("A method that does not return a value cannot be verified.");
         }
 
@@ -532,7 +533,7 @@ namespace Renci.SshNet.Tests.Classes
             ScpClient target = new ScpClient(connectionInfo); // TODO: Initialize to an appropriate value
             string filename = string.Empty; // TODO: Initialize to an appropriate value
             Stream destination = null; // TODO: Initialize to an appropriate value
-            target.Download(filename, destination);
+            target.Download(filename, destination, CancellationToken.None);
             Assert.Inconclusive("A method that does not return a value cannot be verified.");
         }
 

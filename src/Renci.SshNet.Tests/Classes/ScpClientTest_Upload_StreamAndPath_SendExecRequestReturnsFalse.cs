@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Renci.SshNet.Common;
@@ -76,7 +77,7 @@ namespace Renci.SshNet.Tests.Classes
         {
             try
             {
-                _scpClient.Upload(_source, _path);
+                _scpClient.Upload(_source, _path, CancellationToken.None);
                 Assert.Fail();
             }
             catch (SshException ex)
