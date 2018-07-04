@@ -2,16 +2,16 @@ using System;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
-[assembly: AssemblyDescription("SSH.NET is a Secure Shell (SSH) library for .NET, optimized for parallelism.")]
-[assembly: AssemblyCompany("Renci")]
+[assembly: AssemblyDescription("EasyMorph's fork of SSH.NET.")]
+//[assembly: AssemblyCompany("Renci")]
 [assembly: AssemblyProduct("SSH.NET")]
-[assembly: AssemblyCopyright("Copyright © Renci 2010-2017")]
+//[assembly: AssemblyCopyright("Copyright © Renci 2010-2017")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
-[assembly: AssemblyVersion("2016.1.0")]
-[assembly: AssemblyFileVersion("2016.1.0")]
-[assembly: AssemblyInformationalVersion("2016.1.0")]
+[assembly: AssemblyVersion("2016.1.2")]
+[assembly: AssemblyFileVersion("2016.1.2")]
+[assembly: AssemblyInformationalVersion("2016.1.2")]
 [assembly: CLSCompliant(false)]
 
 // Setting ComVisible to false makes the types in this assembly not visible 

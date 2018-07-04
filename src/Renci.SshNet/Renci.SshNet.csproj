@@ -42,7 +42,7 @@
     <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyOriginatorKeyFile>..\Renci.SshNet.snk</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>..\EMsshnet.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -465,6 +465,7 @@
       <Link>Renci.SshNet.snk</Link>
     </None>
     <None Include="Documentation\Renci.SshNet.content" />
+    <None Include="EMsshnet.snk" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Documentation\SshNet.shfbproj" />
