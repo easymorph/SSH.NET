@@ -2127,6 +2127,11 @@ namespace Renci.SshNet
                                     ThreadAbstraction.ExecuteThread(() => uploadCallback(writtenBytes));
                                 }
                             }
+                            else 
+                            {
+                                var mes = string.Format("Unable to upload stream to the server: {0} ('{1}')", s.StatusCode, s.ErrorMessage);
+                                throw new Exception(mes);
+                            }
                         });
                     Interlocked.Increment(ref expectedResponses);
 
