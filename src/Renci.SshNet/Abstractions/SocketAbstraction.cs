@@ -384,10 +384,11 @@ namespace Renci.SshNet.Abstractions
             {
                 try
                 {
+                    SocketError errorCode;
                     var bytesSent = socket.Send(data, offset + totalBytesSent, totalBytesToSend - totalBytesSent,
-                        SocketFlags.None);
-                    if (bytesSent == 0)
-                        throw new SshConnectionException("An established connection was aborted by the server.",
+                        SocketFlags.None, out errorCode);
+                    if (bytesSent == 0 && errorCode!= SocketError.Success)
+                        throw new SshConnectionException(string.Format("An established connection was aborted by the server. (socket error: {0})", errorCode),
                             DisconnectReason.ConnectionLost);
 
                     totalBytesSent += bytesSent;
@@ -425,8 +426,8 @@ namespace Renci.SshNet.Abstractions
                 if (socketAsyncSendArgs.SocketError != SocketError.Success)
                     throw new SocketException((int) socketAsyncSendArgs.SocketError);
 
-                if (sendReceiveToken.TotalBytesTransferred == 0)
-                    throw new SshConnectionException("An established connection was aborted by the server.",
+                if (sendReceiveToken.TotalBytesTransferred == 0 && socketAsyncSendArgs.SocketError != SocketError.Success)
+                    throw new SshConnectionException(string.Format("An established connection was aborted by the server. (socket error: {0})", socketAsyncSendArgs.SocketError),
                         DisconnectReason.ConnectionLost);
             }
             finally
