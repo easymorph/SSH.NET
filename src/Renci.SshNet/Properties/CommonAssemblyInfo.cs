@@ -9,9 +9,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
-[assembly: AssemblyVersion("2016.1.3")]
-[assembly: AssemblyFileVersion("2016.1.3")]
-[assembly: AssemblyInformationalVersion("2016.1.3")]
+[assembly: AssemblyVersion("2016.1.3.1")]
+[assembly: AssemblyFileVersion("2016.1.3.1")]
+[assembly: AssemblyInformationalVersion("2016.1.3.1")]
 [assembly: CLSCompliant(false)]
 
 // Setting ComVisible to false makes the types in this assembly not visible 

@@ -258,8 +258,9 @@ namespace Renci.SshNet.Abstractions
         /// <exception cref="SocketException">The read failed.</exception>
         public static int ReadByte(Socket socket, TimeSpan timeout)
         {
+            SocketError lastSocketError;
             var buffer = new byte[1];
-            if (Read(socket, buffer, 0, 1, timeout) == 0)
+            if (Read(socket, buffer, 0, 1, timeout, out lastSocketError) == 0)
                 return -1;
 
             return buffer[0];
@@ -285,29 +286,31 @@ namespace Renci.SshNet.Abstractions
         /// <param name="offset">The position in <paramref name="buffer"/> parameter to store the received data.</param>
         /// <param name="size">The number of bytes to receive.</param>
         /// <param name="timeout">Specifies the amount of time after which the call will time out.</param>
+        /// <param name="lastSocketError"></param>
         /// <returns>
         /// The number of bytes received.
         /// </returns>
         /// <remarks>
-        /// If no data is available for reading, the <see cref="Read(Socket,byte[], int, int, TimeSpan)"/> method will
+        /// If no data is available for reading, the <see cref="Read(Socket,byte[], int, int, TimeSpan, out SocketError)"/> method will
         /// block until data is available or the time-out value was exceeded. If the time-out value was exceeded, the
-        /// <see cref="Read(Socket,byte[], int, int, TimeSpan)"/> call will throw a <see cref="SshOperationTimeoutException"/>.
+        /// <see cref="Read(Socket,byte[], int, int, TimeSpan, out SocketError)"/> call will throw a <see cref="SshOperationTimeoutException"/>.
         ///  If you are in non-blocking mode, and there is no data available in the in the protocol stack buffer, the
-        /// <see cref="Read(Socket,byte[], int, int, TimeSpan)"/> method will complete immediately and throw a <see cref="SocketException"/>.
+        /// <see cref="Read(Socket,byte[], int, int, TimeSpan, out SocketError)"/> method will complete immediately and throw a <see cref="SocketException"/>.
         /// </remarks>
-        public static int Read(Socket socket, byte[] buffer, int offset, int size, TimeSpan timeout)
+        public static int Read(Socket socket, byte[] buffer, int offset, int size, TimeSpan timeout, out SocketError lastSocketError)
         {
 #if FEATURE_SOCKET_SYNC
             var totalBytesRead = 0;
             var totalBytesToRead = size;
 
             socket.ReceiveTimeout = (int) timeout.TotalMilliseconds;
-
+            lastSocketError = SocketError.SocketError;
             do
             {
                 try
                 {
-                    var bytesRead = socket.Receive(buffer, offset + totalBytesRead, totalBytesToRead - totalBytesRead, SocketFlags.None);
+
+                    var bytesRead = socket.Receive(buffer, offset + totalBytesRead, totalBytesToRead - totalBytesRead, SocketFlags.None, out lastSocketError);
                     if (bytesRead == 0)
                         return 0;
 

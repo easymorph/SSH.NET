@@ -1643,13 +1643,14 @@ namespace Renci.SshNet
         /// <exception cref="SocketException">The read failed.</exception>
         private int SocketRead(byte[] buffer, int offset, int length)
         {
-            var bytesRead = SocketAbstraction.Read(_socket, buffer, offset, length, InfiniteTimeSpan);
+            SocketError lastSocketError;
+            var bytesRead = SocketAbstraction.Read(_socket, buffer, offset, length, InfiniteTimeSpan, out lastSocketError);
             if (bytesRead == 0)
             {
                 // when we're in the disconnecting state (either triggered by client or server), then the
                 // SshConnectionException will interrupt the message listener loop (if not already interrupted)
                 // and the exception itself will be ignored (in RaiseError)
-                throw new SshConnectionException("An established connection was aborted by the server.",
+                throw new SshConnectionException(string.Format("An established connection was aborted by the server. (socket error: {0})", lastSocketError),
                     DisconnectReason.ConnectionLost);
             }
             return bytesRead;
@@ -1741,7 +1742,8 @@ namespace Renci.SshNet
         /// <exception cref="SocketException">The read failed.</exception>
         private int TrySocketRead(byte[] buffer, int offset, int length)
         {
-            return SocketAbstraction.Read(_socket, buffer, offset, length, InfiniteTimeSpan);
+            SocketError lastSocketError;
+            return SocketAbstraction.Read(_socket, buffer, offset, length, InfiniteTimeSpan, out lastSocketError);
         }
 
         /// <summary>
@@ -1763,7 +1765,8 @@ namespace Renci.SshNet
             // to be processed by subsequent invocations
             do
             {
-                var bytesRead = SocketAbstraction.Read(_socket, data, 0, data.Length, timeout);
+                SocketError lastSocketError;
+                var bytesRead = SocketAbstraction.Read(_socket, data, 0, data.Length, timeout, out lastSocketError);
                 if (bytesRead == 0)
                     // the remote server shut down the socket
                     break;
@@ -2271,7 +2274,7 @@ namespace Renci.SshNet
 
         private static SshConnectionException CreateConnectionAbortedByServerException()
         {
-            return new SshConnectionException("An established connection was aborted by the server.",
+            return new SshConnectionException("An established connection was aborted by the server (connection with SSH server was closed or socket was disposed).",
                 DisconnectReason.ConnectionLost);
         }
 
