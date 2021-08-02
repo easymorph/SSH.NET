@@ -327,7 +327,8 @@ namespace Renci.SshNet
             //  TODO:   See what need to be done depends on the code
 
             var portBuffer = new byte[2];
-            if (SocketAbstraction.Read(socket, portBuffer, 0, portBuffer.Length, timeout) == 0)
+            SocketError lastSocketError;
+            if (SocketAbstraction.Read(socket, portBuffer, 0, portBuffer.Length, timeout, out lastSocketError) == 0)
             {
                 // SOCKS client closed connection
                 return false;
@@ -336,7 +337,7 @@ namespace Renci.SshNet
             var port = Pack.BigEndianToUInt16(portBuffer);
 
             var ipBuffer = new byte[4];
-            if (SocketAbstraction.Read(socket, ipBuffer, 0, ipBuffer.Length, timeout) == 0)
+            if (SocketAbstraction.Read(socket, ipBuffer, 0, ipBuffer.Length, timeout,  out lastSocketError) == 0)
             {
                 // SOCKS client closed connection
                 return false;
@@ -382,7 +383,8 @@ namespace Renci.SshNet
             }
 
             var authenticationMethods = new byte[authenticationMethodsCount];
-            if (SocketAbstraction.Read(socket, authenticationMethods, 0, authenticationMethods.Length, timeout) == 0)
+            SocketError lastSocketError;
+            if (SocketAbstraction.Read(socket, authenticationMethods, 0, authenticationMethods.Length, timeout, out lastSocketError) == 0)
             {
                 // SOCKS client closed connection
                 return false;
@@ -448,7 +450,7 @@ namespace Renci.SshNet
             }
 
             var portBuffer = new byte[2];
-            if (SocketAbstraction.Read(socket, portBuffer, 0, portBuffer.Length, timeout) == 0)
+            if (SocketAbstraction.Read(socket, portBuffer, 0, portBuffer.Length, timeout, out lastSocketError) == 0)
             {
                 // SOCKS client closed connection
                 return false;
@@ -469,12 +471,13 @@ namespace Renci.SshNet
 
         private static string GetSocks5Host(int addressType, Socket socket, TimeSpan timeout)
         {
+            SocketError lastSocketError;
             switch (addressType)
             {
                 case 0x01: // IPv4
                     {
                         var addressBuffer = new byte[4];
-                        if (SocketAbstraction.Read(socket, addressBuffer, 0, 4, timeout) == 0)
+                        if (SocketAbstraction.Read(socket, addressBuffer, 0, 4, timeout, out lastSocketError) == 0)
                         {
                             // SOCKS client closed connection
                             return null;
@@ -492,7 +495,7 @@ namespace Renci.SshNet
                             return null;
                         }
                         var addressBuffer = new byte[length];
-                        if (SocketAbstraction.Read(socket, addressBuffer, 0, addressBuffer.Length, timeout) == 0)
+                        if (SocketAbstraction.Read(socket, addressBuffer, 0, addressBuffer.Length, timeout, out lastSocketError) == 0)
                         {
                             // SOCKS client closed connection
                             return null;
@@ -504,7 +507,7 @@ namespace Renci.SshNet
                 case 0x04: // IPv6
                     {
                         var addressBuffer = new byte[16];
-                        if (SocketAbstraction.Read(socket, addressBuffer, 0, 16, timeout) == 0)
+                        if (SocketAbstraction.Read(socket, addressBuffer, 0, 16, timeout, out lastSocketError) == 0)
                         {
                             // SOCKS client closed connection
                             return null;
@@ -568,9 +571,11 @@ namespace Renci.SshNet
         {
             var text = new StringBuilder();
             var buffer = new byte[1];
+            
             while (true)
             {
-                if (SocketAbstraction.Read(socket, buffer, 0, 1, timeout) == 0)
+                SocketError lastSocketError;
+                if (SocketAbstraction.Read(socket, buffer, 0, 1, timeout, out lastSocketError) == 0)
                 {
                     // SOCKS client closed connection
                     return null;

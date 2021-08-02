@@ -101,10 +101,11 @@ namespace Renci.SshNet.Connection
         /// <exception cref="SocketException">The read failed.</exception>
         protected static int SocketRead(Socket socket, byte[] buffer, int offset, int length, TimeSpan readTimeout)
         {
-            var bytesRead = SocketAbstraction.Read(socket, buffer, offset, length, readTimeout);
+            SocketError lastSocketError;
+            var bytesRead = SocketAbstraction.Read(socket, buffer, offset, length, readTimeout, out lastSocketError);
             if (bytesRead == 0)
             {
-                throw new SshConnectionException("An established connection was aborted by the server.",
+                throw new SshConnectionException(string.Format("An established connection was aborted by the server. (socket error: {0})", lastSocketError),
                                                  DisconnectReason.ConnectionLost);
             }
             return bytesRead;
