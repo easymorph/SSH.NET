@@ -7,7 +7,7 @@
     <AssemblyOriginatorKeyFile>..\EMsshnet.snk</AssemblyOriginatorKeyFile>
     <LangVersion>5</LangVersion>
     <SignAssembly>true</SignAssembly>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>net40</TargetFramework>
   </PropertyGroup>
 
   <!--
