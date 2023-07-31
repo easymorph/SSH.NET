@@ -1,11 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <AssemblyName>Renci.SshNet</AssemblyName>
-    <TargetFrameworks>net462;netstandard2.0;net6.0;net7.0</TargetFrameworks>
+    <AssemblyName>EasyMorph.SshNet</AssemblyName>
+    <TargetFrameworks>net472</TargetFrameworks>
+    <AssemblyOriginatorKeyFile>..\EMsshnet.snk</AssemblyOriginatorKeyFile>
+    <SignAssembly>true</SignAssembly>
+    <TargetFramework>net472</TargetFramework>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'net462' ">
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net472' ">
     <DefineConstants>FEATURE_BINARY_SERIALIZATION;FEATURE_SOCKET_EAP;FEATURE_SOCKET_APM;FEATURE_DNS_SYNC;FEATURE_HASH_RIPEMD160_CREATE;FEATURE_HMAC_RIPEMD160</DefineConstants>
   </PropertyGroup>
 

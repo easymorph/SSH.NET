@@ -62,10 +62,10 @@ namespace Renci.SshNet.Abstractions
 #if FEATURE_SOCKET_EAP
             var connectCompleted = new ManualResetEvent(initialState: false);
             var args = new SocketAsyncEventArgs
-                {
-                    UserToken = connectCompleted,
-                    RemoteEndPoint = remoteEndpoint
-                };
+            {
+                UserToken = connectCompleted,
+                RemoteEndPoint = remoteEndpoint
+            };
             args.Completed += ConnectCompleted;
 
             if (socket.ConnectAsync(args))
@@ -124,7 +124,7 @@ namespace Renci.SshNet.Abstractions
                 throw new SshOperationTimeoutException(string.Format(CultureInfo.InvariantCulture,
                     "Connection failed to establish within {0:F0} milliseconds.", connectTimeout.TotalMilliseconds));
 #else
-            #error Connecting to a remote endpoint is not implemented.
+#error Connecting to a remote endpoint is not implemented.
 #endif
         }
 
@@ -218,7 +218,8 @@ namespace Renci.SshNet.Abstractions
         public static int ReadByte(Socket socket, TimeSpan timeout)
         {
             var buffer = new byte[1];
-            if (Read(socket, buffer, 0, 1, timeout) == 0)
+
+            if (Read(socket, buffer, 0, 1, timeout, out _) == 0)
             {
                 return -1;
             }
@@ -257,7 +258,7 @@ namespace Renci.SshNet.Abstractions
         public static byte[] Read(Socket socket, int size, TimeSpan timeout)
         {
             var buffer = new byte[size];
-            _ = Read(socket, buffer, 0, size, timeout);
+            _ = Read(socket, buffer, 0, size, timeout, out _);
             return buffer;
         }
 
@@ -266,6 +267,8 @@ namespace Renci.SshNet.Abstractions
             return socket.ReceiveAsync(buffer, offset, length, cancellationToken);
         }
 
+
+#pragma warning disable CS1574 // XML comment has cref attribute that could not be resolved
         /// <summary>
         /// Receives data from a bound <see cref="Socket"/> into a receive buffer.
         /// </summary>
@@ -274,6 +277,7 @@ namespace Renci.SshNet.Abstractions
         /// <param name="offset">The position in <paramref name="buffer"/> parameter to store the received data.</param>
         /// <param name="size">The number of bytes to receive.</param>
         /// <param name="readTimeout">The maximum time to wait until <paramref name="size"/> bytes have been received.</param>
+        /// <param name="lastSocketError"></param>
         /// <returns>
         /// The number of bytes received.
         /// </returns>
@@ -288,18 +292,21 @@ namespace Renci.SshNet.Abstractions
         /// <see cref="Read(Socket, byte[], int, int, TimeSpan)"/> method will complete immediately and throw a <see cref="SocketException"/>.
         /// </para>
         /// </remarks>
-        public static int Read(Socket socket, byte[] buffer, int offset, int size, TimeSpan readTimeout)
+        public static int Read(Socket socket, byte[] buffer, int offset, int size, TimeSpan readTimeout, out SocketError lastSocketError)
+#pragma warning restore CS1574 // XML comment has cref attribute that could not be resolved
         {
             var totalBytesRead = 0;
             var totalBytesToRead = size;
 
-            socket.ReceiveTimeout = (int)readTimeout.TotalMilliseconds;
+            socket.ReceiveTimeout = (int) readTimeout.TotalMilliseconds;
+            lastSocketError = SocketError.SocketError;
 
             do
             {
                 try
                 {
-                    var bytesRead = socket.Receive(buffer, offset + totalBytesRead, totalBytesToRead - totalBytesRead, SocketFlags.None);
+
+                    var bytesRead = socket.Receive(buffer, offset + totalBytesRead, totalBytesToRead - totalBytesRead, SocketFlags.None, out lastSocketError);
                     if (bytesRead == 0)
                     {
                         return 0;
@@ -344,11 +351,10 @@ namespace Renci.SshNet.Abstractions
             {
                 try
                 {
-                    var bytesSent = socket.Send(data, offset + totalBytesSent, totalBytesToSend - totalBytesSent, SocketFlags.None);
-                    if (bytesSent == 0)
+                    var bytesSent = socket.Send(data, offset + totalBytesSent, totalBytesToSend - totalBytesSent, SocketFlags.None, out var errorCode);
+                    if (bytesSent == 0 && errorCode != SocketError.Success)
                     {
-                        throw new SshConnectionException("An established connection was aborted by the server.",
-                                                         DisconnectReason.ConnectionLost);
+                        throw new SshConnectionException(string.Format("An established connection was aborted by the server. (socket error: {0})", errorCode), DisconnectReason.ConnectionLost);
                     }
 
                     totalBytesSent += bytesSent;
@@ -390,6 +396,7 @@ namespace Renci.SshNet.Abstractions
             var eventWaitHandle = (ManualResetEvent) e.UserToken;
             _ = eventWaitHandle?.Set();
         }
+       
 #endif // FEATURE_SOCKET_EAP
     }
 }

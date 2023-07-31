@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 using Renci.SshNet.Channels;
 using Renci.SshNet.Common;
@@ -204,31 +204,48 @@ namespace Renci.SshNet
         /// </summary>
         /// <param name="source">The <see cref="Stream"/> to upload.</param>
         /// <param name="path">A relative or absolute path for the remote file.</param>
+        /// <param name="cancellationToken">cancellation token</param>
         /// <exception cref="ArgumentNullException"><paramref name="path" /> is <c>null</c>.</exception>
         /// <exception cref="ArgumentException"><paramref name="path"/> is a zero-length <see cref="string"/>.</exception>
         /// <exception cref="ScpException">A directory with the specified path exists on the remote host.</exception>
         /// <exception cref="SshException">The secure copy execution request was rejected by the server.</exception>
-        public void Upload(Stream source, string path)
+        public void Upload(Stream source, string path,CancellationToken cancellationToken)
         {
-            var posixPath = PosixPath.CreateAbsoluteOrRelativeFilePath(path);
-
-            using (var input = ServiceFactory.CreatePipeStream())
-            using (var channel = Session.CreateChannelSession())
+            try
             {
-                channel.DataReceived += (sender, e) => input.Write(e.Data, 0, e.Data.Length);
-                channel.Open();
+                var posixPath = PosixPath.CreateAbsoluteOrRelativeFilePath(path);
 
-                // Pass only the directory part of the path to the server, and use the (hidden) -d option to signal
-                // that we expect the target to be a directory.
-                if (!channel.SendExecRequest(string.Format("scp -t -d {0}", _remotePathTransformation.Transform(posixPath.Directory))))
+                using (var input = ServiceFactory.CreatePipeStream())
+                using (var channel = Session.CreateChannelSession())
+                using (cancellationToken.Register(() => { channel.Dispose(); input.Dispose(); }))
                 {
-                    throw SecureExecutionRequestRejectedException();
+                    channel.DataReceived += (sender, e) => input.Write(e.Data, 0, e.Data.Length);
+                    channel.Open();
+
+                    // Pass only the directory part of the path to the server, and use the (hidden) -d option to signal
+                    // that we expect the target to be a directory.
+                    if (!channel.SendExecRequest(string.Format("scp -t -d {0}",
+                        _remotePathTransformation.Transform(posixPath.Directory))))
+                    {
+                        throw SecureExecutionRequestRejectedException();
+                    }
+
+                    CheckReturnCode(input);
+
+                    UploadFileModeAndName(channel, input, source.Length, posixPath.File);
+                    UploadFileContent(channel, input, source, posixPath.File);
                 }
-
-                CheckReturnCode(input);
-
-                UploadFileModeAndName(channel, input, source.Length, posixPath.File);
-                UploadFileContent(channel, input, source, posixPath.File);
+            }
+            catch(Exception)
+            {
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    throw new OperationCanceledException();
+                }
+                else
+                {
+                    throw;
+                }
             }
         }
 
@@ -237,11 +254,12 @@ namespace Renci.SshNet
         /// </summary>
         /// <param name="filename">A relative or absolute path for the remote file.</param>
         /// <param name="destination">The <see cref="Stream"/> to download the remote file to.</param>
+        /// <param name="cancellationToken">cancellation token</param>
         /// <exception cref="ArgumentException"><paramref name="filename"/> is <c>null</c> or contains only whitespace characters.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="destination"/> is <c>null</c>.</exception>
         /// <exception cref="ScpException"><paramref name="filename"/> exists on the remote host, and is not a regular file.</exception>
         /// <exception cref="SshException">The secure copy execution request was rejected by the server.</exception>
-        public void Download(string filename, Stream destination)
+        public void Download(string filename, Stream destination, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(filename))
             {
@@ -253,36 +271,57 @@ namespace Renci.SshNet
                 throw new ArgumentNullException(nameof(destination));
             }
 
-            using (var input = ServiceFactory.CreatePipeStream())
-            using (var channel = Session.CreateChannelSession())
+            try
             {
-                channel.DataReceived += (sender, e) => input.Write(e.Data, 0, e.Data.Length);
-                channel.Open();
-
-                // Send channel command request
-                if (!channel.SendExecRequest(string.Concat("scp -f ", _remotePathTransformation.Transform(filename))))
+                using (var input = ServiceFactory.CreatePipeStream())
+                using (var channel = Session.CreateChannelSession())
+                using (cancellationToken.Register(() =>
                 {
-                    throw SecureExecutionRequestRejectedException();
-                }
-
-                SendSuccessConfirmation(channel); // Send reply
-
-                var message = ReadString(input);
-                var match = FileInfoRe.Match(message);
-
-                if (match.Success)
+                    channel.Dispose();
+                    input.Dispose();
+                }))
                 {
-                    // Read file
+                    channel.DataReceived += (sender, e) => input.Write(e.Data, 0, e.Data.Length);
+                    channel.Open();
+
+                    //  Send channel command request
+                    if (!channel.SendExecRequest(string.Format("scp -f {0}",
+                        _remotePathTransformation.Transform(filename))))
+                    {
+                        throw SecureExecutionRequestRejectedException();
+                    }
+
                     SendSuccessConfirmation(channel); //  Send reply
 
-                    var length = long.Parse(match.Result("${length}"), CultureInfo.InvariantCulture);
-                    var fileName = match.Result("${filename}");
+                    var message = ReadString(input);
+                    var match = FileInfoRe.Match(message);
 
-                    InternalDownload(channel, input, destination, fileName, length);
+                    if (match.Success)
+                    {
+                        //  Read file
+                        SendSuccessConfirmation(channel); //  Send reply
+
+                        var length = long.Parse(match.Result("${length}"));
+                        var fileName = match.Result("${filename}");
+
+                        InternalDownload(channel, input, destination, fileName, length);
+                    }
+                    else
+                    {
+                        SendErrorConfirmation(channel,
+                            string.Format("\"{0}\" is not valid protocol message.", message));
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    throw new OperationCanceledException();
                 }
                 else
                 {
-                    SendErrorConfirmation(channel, string.Format("\"{0}\" is not valid protocol message.", message));
+                    throw;
                 }
             }
         }
