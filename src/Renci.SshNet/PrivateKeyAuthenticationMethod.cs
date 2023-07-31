@@ -6,6 +6,7 @@ using System.Threading;
 using Renci.SshNet.Common;
 using Renci.SshNet.Messages;
 using Renci.SshNet.Messages.Authentication;
+using Renci.SshNet.Security;
 
 namespace Renci.SshNet
 {
@@ -64,24 +65,40 @@ namespace Renci.SshNet
 
             session.RegisterMessage("SSH_MSG_USERAUTH_PK_OK");
 
+            var hostKeys = new HostAlgorithm[] { };
+
+            foreach (var keyFile in KeyFiles)
+            {
+                var idx = hostKeys.Length;
+
+                Array.Resize(ref hostKeys, idx + keyFile.HostKeys.Length);
+
+                for (var i = 0; i < keyFile.HostKeys.Length; i++)
+                {
+                    hostKeys[idx++] = keyFile.HostKeys[i];
+                }
+            }
+
+
+
             try
             {
-                foreach (var keyFile in KeyFiles)
+                foreach (var hostKey in hostKeys)
                 {
                     _ = _authenticationCompleted.Reset();
                     _isSignatureRequired = false;
 
                     var message = new RequestMessagePublicKey(ServiceName.Connection,
                                                               Username,
-                                                              keyFile.HostKey.Name,
-                                                              keyFile.HostKey.Data);
+                                                              hostKey.Name,
+                                                              hostKey.Data);
 
-                    if (KeyFiles.Count < 2)
+                    if (hostKeys.Length < 2)
                     {
                         // If only one key file provided then send signature for very first request
                         var signatureData = new SignatureData(message, session.SessionId).GetBytes();
 
-                        message.Signature = keyFile.HostKey.Sign(signatureData);
+                        message.Signature = hostKey.Sign(signatureData);
                     }
 
                     // Send public key authentication request
@@ -95,12 +112,12 @@ namespace Renci.SshNet
 
                         var signatureMessage = new RequestMessagePublicKey(ServiceName.Connection,
                                                                            Username,
-                                                                           keyFile.HostKey.Name,
-                                                                           keyFile.HostKey.Data);
+                                                                           hostKey.Name,
+                                                                           hostKey.Data);
 
                         var signatureData = new SignatureData(message, session.SessionId).GetBytes();
 
-                        signatureMessage.Signature = keyFile.HostKey.Sign(signatureData);
+                        signatureMessage.Signature = hostKey.Sign(signatureData);
 
                         // Send public key authentication request with signature
                         session.SendMessage(signatureMessage);
