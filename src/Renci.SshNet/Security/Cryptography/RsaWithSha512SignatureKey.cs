@@ -6,23 +6,22 @@ using Renci.SshNet.Security.Cryptography;
 
 namespace Renci.SshNet.Security
 {
-
     /// <summary>
-    /// Contains RSA private and public key (256)
+    /// Contains RSA private and public key (512)
     /// </summary>
-    public class RsaWithSha256SignatureKey : RsaKey
+    public class RsaWithSha512SignatureKey : RsaKey
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="RsaWithSha256SignatureKey"/> class.
+        /// Initializes a new instance of the <see cref="RsaWithSha512SignatureKey"/> class.
         /// </summary>
-        public RsaWithSha256SignatureKey()
+        public RsaWithSha512SignatureKey()
         { }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RsaWithSha256SignatureKey"/> class.
+        /// Initializes a new instance of the <see cref="RsaWithSha512SignatureKey"/> class.
         /// </summary>
         /// <param name="data">DER encoded private key data.</param>
-        public RsaWithSha256SignatureKey(byte[] data)
+        public RsaWithSha512SignatureKey(byte[] data)
             : base(data)
         {
             if (_privateKey.Length != 8)
@@ -32,7 +31,7 @@ namespace Renci.SshNet.Security
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RsaWithSha256SignatureKey"/> class.
+        /// Initializes a new instance of the <see cref="RsaWithSha512SignatureKey"/> class.
         /// </summary>
         /// <param name="modulus">The modulus.</param>
         /// <param name="exponent">The exponent.</param>
@@ -40,12 +39,12 @@ namespace Renci.SshNet.Security
         /// <param name="p">The p.</param>
         /// <param name="q">The q.</param>
         /// <param name="inverseQ">The inverse Q.</param>
-        public RsaWithSha256SignatureKey(BigInteger modulus, BigInteger exponent, BigInteger d, BigInteger p, BigInteger q,
+        public RsaWithSha512SignatureKey(BigInteger modulus, BigInteger exponent, BigInteger d, BigInteger p, BigInteger q,
             BigInteger inverseQ) : base(modulus, exponent, d, p, q, inverseQ)
         {
         }
 
-        private RsaSha256DigitalSignature _digitalSignature;
+        private RsaSha512DigitalSignature _digitalSignature;
 
         /// <summary>
         /// Gets the digital signature.
@@ -54,7 +53,7 @@ namespace Renci.SshNet.Security
         {
             get
             {
-                _digitalSignature ??= new RsaSha256DigitalSignature(this);
+                _digitalSignature ??= new RsaSha512DigitalSignature(this);
 
                 return _digitalSignature;
             }
@@ -65,7 +64,7 @@ namespace Renci.SshNet.Security
         /// </summary>
         public override string ToString()
         {
-            return "rsa-sha2-256";
+            return "rsa-sha2-512";
         }
     }
 }
