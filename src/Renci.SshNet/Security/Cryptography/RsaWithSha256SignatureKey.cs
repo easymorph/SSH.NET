@@ -45,7 +45,7 @@ namespace Renci.SshNet.Security
         {
         }
 
-        private RsaSha256DigitalSignature _digitalSignature;
+      
 
         /// <summary>
         /// Gets the digital signature.
@@ -67,5 +67,7 @@ namespace Renci.SshNet.Security
         {
             return "rsa-sha2-256";
         }
+
+
     }
 }

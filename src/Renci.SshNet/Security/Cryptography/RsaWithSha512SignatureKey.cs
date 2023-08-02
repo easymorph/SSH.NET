@@ -43,8 +43,7 @@ namespace Renci.SshNet.Security
             BigInteger inverseQ) : base(modulus, exponent, d, p, q, inverseQ)
         {
         }
-
-        private RsaSha512DigitalSignature _digitalSignature;
+                
 
         /// <summary>
         /// Gets the digital signature.

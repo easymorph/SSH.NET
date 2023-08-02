@@ -153,8 +153,10 @@ namespace Renci.SshNet.Security
                 return Modulus.BitLength;
             }
         }
-
-        private RsaDigitalSignature _digitalSignature;
+        /// <summary>
+        /// 
+        /// </summary>
+        protected DigitalSignature _digitalSignature;
         /// <summary>
         /// Gets the digital signature.
         /// </summary>
@@ -266,7 +268,10 @@ namespace Renci.SshNet.Security
                 var digitalSignature = _digitalSignature;
                 if (digitalSignature != null)
                 {
-                    digitalSignature.Dispose();
+                    if (digitalSignature is IDisposable d)
+                    {
+                        d.Dispose();
+                    }
                     _digitalSignature = null;
                 }
 
