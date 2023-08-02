@@ -99,6 +99,8 @@ Private keys can be encrypted using one of the following cipher methods:
 * ecdsa-sha2-nistp521
 * ssh-rsa
 * ssh-dss
+* rsa-sha2-256
+* rsa-sha2-512
 
 ## Message Authentication Code
 

@@ -227,10 +227,9 @@ namespace Renci.SshNet
                     var sha1 = new RsaKey(decryptedData);
                     _keys = new[] { sha2_512, sha2_256, sha1}; 
                     HostKeys = new KeyHostAlgorithm[] {
-
-                        new KeyHostAlgorithm("rsa-sha2-512", sha2_512 ),
+                        new KeyHostAlgorithm("ssh-rsa", sha1 ),                        
                         new KeyHostAlgorithm("rsa-sha2-256", sha2_256 ),
-                        new KeyHostAlgorithm("ssh-rsa", sha1 ),
+                        new KeyHostAlgorithm("rsa-sha2-512", sha2_512 ),
                     };
                     break;
                 case "DSA":
@@ -308,9 +307,9 @@ namespace Renci.SshNet
                         var sha1_x = new RsaKey(modulus, exponent, d, p, q, inverseQ);
                         _keys = new[] { sha2_x_512, sha2_x_256,  sha1_x };
                         HostKeys = new KeyHostAlgorithm[] {
-                            new KeyHostAlgorithm("rsa-sha2-512", sha2_x_512),
+                            new KeyHostAlgorithm("ssh-rsa",sha1_x ),                            
                             new KeyHostAlgorithm("rsa-sha2-256", sha2_x_256),
-                            new KeyHostAlgorithm("ssh-rsa",sha1_x ),
+                            new KeyHostAlgorithm("rsa-sha2-512", sha2_x_512),
                         };
                         
                         
