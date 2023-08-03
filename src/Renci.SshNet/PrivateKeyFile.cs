@@ -225,8 +225,8 @@ namespace Renci.SshNet
                     var sha2_512 = new RsaWithSha512SignatureKey(decryptedData);
                     var sha2_256 = new RsaWithSha256SignatureKey(decryptedData);                    
                     var sha1 = new RsaKey(decryptedData);
-                    _keys = new[] { sha2_512, sha2_256, sha1}; 
-                    HostKeys = new KeyHostAlgorithm[] {
+                    _keys = new Key[] { sha2_512, sha2_256, sha1}; 
+                    HostKeys = new HostAlgorithm[] {
                         new KeyHostAlgorithm("ssh-rsa", sha1 ),                        
                         new KeyHostAlgorithm("rsa-sha2-256", sha2_256 ),
                         new KeyHostAlgorithm("rsa-sha2-512", sha2_512 ),
@@ -234,18 +234,18 @@ namespace Renci.SshNet
                     break;
                 case "DSA":
                     var dsa_key = new DsaKey(decryptedData);
-                    _keys = new[] { dsa_key };
-                    HostKeys = new[] { new KeyHostAlgorithm("ssh-dss", dsa_key) };
+                    _keys = new Key[] { dsa_key };
+                    HostKeys = new HostAlgorithm[] { new KeyHostAlgorithm("ssh-dss", dsa_key) };
                     break;
                 case "EC":
                     var ecdsa_key = new EcdsaKey(decryptedData);
-                    _keys = new[] { ecdsa_key };
-                    HostKeys = new[] { new KeyHostAlgorithm(_keys.ToString(), ecdsa_key) };
+                    _keys = new Key[] { ecdsa_key };
+                    HostKeys = new HostAlgorithm[] { new KeyHostAlgorithm(_keys.ToString(), ecdsa_key) };
                     break;
                 case "OPENSSH":
                     var openssh_key = ParseOpenSshV1Key(decryptedData, passPhrase);
-                    _keys = new[] { openssh_key };
-                    HostKeys = new[] { new KeyHostAlgorithm(_keys.ToString(), openssh_key)};
+                    _keys = new Key[] { openssh_key };
+                    HostKeys = new HostAlgorithm[] { new KeyHostAlgorithm(_keys.ToString(), openssh_key)};
                     break;
                 case "SSH2 ENCRYPTED":
                     var reader = new SshDataReader(decryptedData);
@@ -305,8 +305,8 @@ namespace Renci.SshNet
                         var sha2_x_512 = new RsaWithSha512SignatureKey(modulus, exponent, d, p, q, inverseQ);
                         var sha2_x_256 = new RsaWithSha256SignatureKey(modulus, exponent, d, p, q, inverseQ);
                         var sha1_x = new RsaKey(modulus, exponent, d, p, q, inverseQ);
-                        _keys = new[] { sha2_x_512, sha2_x_256,  sha1_x };
-                        HostKeys = new KeyHostAlgorithm[] {
+                        _keys = new Key[] { sha2_x_512, sha2_x_256,  sha1_x };
+                        HostKeys = new HostAlgorithm[] {
                             new KeyHostAlgorithm("ssh-rsa",sha1_x ),                            
                             new KeyHostAlgorithm("rsa-sha2-256", sha2_x_256),
                             new KeyHostAlgorithm("rsa-sha2-512", sha2_x_512),
@@ -327,8 +327,8 @@ namespace Renci.SshNet
                         var y = reader.ReadBigIntWithBits();
                         var x = reader.ReadBigIntWithBits();
                         var dss_x_key = new DsaKey(p, q, g, y, x);
-                        _keys = new[] { dss_x_key }; 
-                        HostKeys = new[] { new KeyHostAlgorithm("ssh-dss", dss_x_key) };
+                        _keys = new Key[] { dss_x_key }; 
+                        HostKeys = new HostAlgorithm[] { new KeyHostAlgorithm("ssh-dss", dss_x_key) };
                     }
                     else
                     {
