@@ -204,7 +204,7 @@ namespace Renci.SshNet.Abstractions
         public static int ReadByte(Socket socket, TimeSpan timeout)
         {
             var buffer = new byte[1];
-            if (Read(socket, buffer, 0, 1, timeout) == 0)
+            if (Read(socket, buffer, 0, 1, timeout, out _) == 0)
             {
                 return -1;
             }
@@ -243,7 +243,7 @@ namespace Renci.SshNet.Abstractions
         public static byte[] Read(Socket socket, int size, TimeSpan timeout)
         {
             var buffer = new byte[size];
-            _ = Read(socket, buffer, 0, size, timeout);
+            _ = Read(socket, buffer, 0, size, timeout, out _);
             return buffer;
         }
 
@@ -255,32 +255,34 @@ namespace Renci.SshNet.Abstractions
         /// <param name="offset">The position in <paramref name="buffer"/> parameter to store the received data.</param>
         /// <param name="size">The number of bytes to receive.</param>
         /// <param name="readTimeout">The maximum time to wait until <paramref name="size"/> bytes have been received.</param>
+        /// <param name="lastSocketError">Last socket error.</param>
         /// <returns>
         /// The number of bytes received.
         /// </returns>
         /// <remarks>
         /// <para>
-        /// If no data is available for reading, the <see cref="Read(Socket, byte[], int, int, TimeSpan)"/> method will
+        /// If no data is available for reading, the <see cref="Read(Socket, byte[], int, int, TimeSpan, out SocketError)"/> method will
         /// block until data is available or the time-out value is exceeded. If the time-out value is exceeded, the
-        /// <see cref="Read(Socket, byte[], int, int, TimeSpan)"/> call will throw a <see cref="SshOperationTimeoutException"/>.
+        /// <see cref="Read(Socket, byte[], int, int, TimeSpan, out SocketError)"/> call will throw a <see cref="SshOperationTimeoutException"/>.
         /// </para>
         /// <para>
         /// If you are in non-blocking mode, and there is no data available in the in the protocol stack buffer, the
-        /// <see cref="Read(Socket, byte[], int, int, TimeSpan)"/> method will complete immediately and throw a <see cref="SocketException"/>.
+        /// <see cref="Read(Socket, byte[], int, int, TimeSpan, out SocketError)"/> method will complete immediately and throw a <see cref="SocketException"/>.
         /// </para>
         /// </remarks>
-        public static int Read(Socket socket, byte[] buffer, int offset, int size, TimeSpan readTimeout)
+        public static int Read(Socket socket, byte[] buffer, int offset, int size, TimeSpan readTimeout, out SocketError lastSocketError)
         {
             var totalBytesRead = 0;
             var totalBytesToRead = size;
 
             socket.ReceiveTimeout = readTimeout.AsTimeout(nameof(readTimeout));
+            lastSocketError = SocketError.SocketError;
 
             do
             {
                 try
                 {
-                    var bytesRead = socket.Receive(buffer, offset + totalBytesRead, totalBytesToRead - totalBytesRead, SocketFlags.None);
+                    var bytesRead = socket.Receive(buffer, offset + totalBytesRead, totalBytesToRead - totalBytesRead, SocketFlags.None, out lastSocketError);
                     if (bytesRead == 0)
                     {
                         return 0;
@@ -332,10 +334,10 @@ namespace Renci.SshNet.Abstractions
             {
                 try
                 {
-                    var bytesSent = socket.Send(data, offset + totalBytesSent, totalBytesToSend - totalBytesSent, SocketFlags.None);
-                    if (bytesSent == 0)
+                    var bytesSent = socket.Send(data, offset + totalBytesSent, totalBytesToSend - totalBytesSent, SocketFlags.None, out var errorCode);
+                    if (bytesSent == 0 && errorCode != SocketError.Success)
                     {
-                        throw new SshConnectionException("An established connection was aborted by the server.",
+                        throw new SshConnectionException(string.Format("An established connection was aborted by the server. (socket error: {0})", errorCode),
                                                          DisconnectReason.ConnectionLost);
                     }
 

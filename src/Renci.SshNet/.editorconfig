@@ -188,3 +188,6 @@ dotnet_diagnostic.MA0040.severity = none
 # MA0042: Do not use blocking calls in an async method
 # duplicate of CA1849
 dotnet_diagnostic.MA0042.severity = none
+
+# Default severity for analyzer diagnostics with category 'Usage'
+dotnet_analyzer_diagnostic.category-Usage.severity = none

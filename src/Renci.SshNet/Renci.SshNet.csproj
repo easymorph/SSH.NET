@@ -1,10 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <AssemblyName>Renci.SshNet</AssemblyName>
-    <Product>SSH.NET</Product>
-    <AssemblyTitle>SSH.NET</AssemblyTitle>
-    <TargetFrameworks>net462;netstandard2.0;netstandard2.1;net6.0;net7.0;net8.0</TargetFrameworks>
+    <AssemblyName>EasyMorph.SshNet</AssemblyName>
+    <AssemblyOriginatorKeyFile>..\EMsshnet.snk</AssemblyOriginatorKeyFile>
+    <LangVersion>12</LangVersion>
+    <SignAssembly>true</SignAssembly>
+    <TargetFramework>net462</TargetFramework>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -24,6 +25,10 @@
     <NBGV_ThisAssemblyIncludesPackageVersion>true</NBGV_ThisAssemblyIncludesPackageVersion>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <RunAnalyzersDuringBuild>False</RunAnalyzersDuringBuild>
+    <RunAnalyzersDuringLiveAnalysis>False</RunAnalyzersDuringLiveAnalysis>
+    <EnforceCodeStyleInBuild>False</EnforceCodeStyleInBuild>
+    <EnableNETAnalyzers>False</EnableNETAnalyzers>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(CI)' != ''">
