@@ -10,7 +10,7 @@
 
   <PropertyGroup>
     <IsPackable>true</IsPackable>
-    <PackageId>SSH.NET</PackageId>
+    <PackageId>EasyMorph.SshNet</PackageId>
     <Title>SSH.NET</Title>
     <Description>SSH.NET is a Secure Shell (SSH) library for .NET, optimized for parallelism.</Description>
     <Copyright>Copyright © Renci 2010-$([System.DateTime]::UtcNow.Year)</Copyright>
