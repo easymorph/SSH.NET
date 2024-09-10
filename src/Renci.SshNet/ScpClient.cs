@@ -263,18 +263,17 @@ namespace Renci.SshNet
                 using (var input = ServiceFactory.CreatePipeStream())
                 using (var channel = Session.CreateChannelSession())
                 using (cancellationToken.Register(() =>
-                {
-                    channel.Dispose();
+                {                    
                     input.Dispose();
                 }))
                 {
                     channel.DataReceived += (sender, e) => input.Write(e.Data, 0, e.Data.Length);
+                    channel.Closed += (sender, e) => input.Dispose();
                     channel.Open();
 
                     // Pass only the directory part of the path to the server, and use the (hidden) -d option to signal
                     // that we expect the target to be a directory.
-                    if (!channel.SendExecRequest(string.Format("scp -t -d {0}",
-                        _remotePathTransformation.Transform(posixPath.Directory))))
+                    if (!channel.SendExecRequest(string.Format("scp -t -d {0}", _remotePathTransformation.Transform(posixPath.Directory))))
                     {
                         throw SecureExecutionRequestRejectedException();
                     }
@@ -525,11 +524,12 @@ namespace Renci.SshNet
                 using (var channel = Session.CreateChannelSession())
                 using (cancellationToken.Register(() =>
                 {
-                    channel.Dispose();
-                    input.Dispose();
+                    input.Dispose();                    
                 }))
                 {
                     channel.DataReceived += (sender, e) => input.Write(e.Data, 0, e.Data.Length);
+                    channel.Closed += (sender, e) => input.Dispose();
+
                     channel.Open();
 
                     // Send channel command request
@@ -549,15 +549,14 @@ namespace Renci.SshNet
                         // Read file
                         SendSuccessConfirmation(channel); //  Send reply
 
-                        var length = long.Parse(match.Result("${length}"));
+                        var length = long.Parse(match.Result("${length}"), CultureInfo.InvariantCulture);
                         var fileName = match.Result("${filename}");
 
                         InternalDownload(channel, input, destination, fileName, length);
                     }
                     else
                     {
-                        SendErrorConfirmation(channel,
-                            string.Format("\"{0}\" is not valid protocol message.", message));
+                        SendErrorConfirmation(channel, string.Format("\"{0}\" is not valid protocol message.", message));
                     }
                 }
             }
