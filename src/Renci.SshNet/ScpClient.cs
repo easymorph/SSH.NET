@@ -440,7 +440,7 @@ namespace Renci.SshNet
                 // Send reply
                 SendSuccessConfirmation(channel);
 
-                InternalDownload(channel, input, fileInfo);
+                InternalDownload(channel, input, fileInfo, CancellationToken.None);
             }
         }
 
@@ -487,7 +487,7 @@ namespace Renci.SshNet
                 // Send reply
                 SendSuccessConfirmation(channel);
 
-                InternalDownload(channel, input, directoryInfo);
+                InternalDownload(channel, input, directoryInfo, CancellationToken.None);
             }
         }
 
@@ -522,10 +522,6 @@ namespace Renci.SshNet
             {
                 using (var input = ServiceFactory.CreatePipeStream())
                 using (var channel = Session.CreateChannelSession())
-                using (cancellationToken.Register(() =>
-                {
-                    input.Dispose();                    
-                }))
                 {
                     channel.DataReceived += (sender, e) => input.Write(e.Data, 0, e.Data.Length);
                     channel.Closed += (sender, e) => input.Dispose();
@@ -552,7 +548,7 @@ namespace Renci.SshNet
                         var length = long.Parse(match.Result("${length}"), CultureInfo.InvariantCulture);
                         var fileName = match.Result("${filename}");
 
-                        InternalDownload(channel, input, destination, fileName, length);
+                        InternalDownload(channel, input, destination, fileName, length, cancellationToken);
                     }
                     else
                     {
@@ -790,7 +786,7 @@ namespace Renci.SshNet
             CheckReturnCode(input);
         }
 
-        private void InternalDownload(IChannel channel, Stream input, Stream output, string filename, long length)
+        private void InternalDownload(IChannel channel, Stream input, Stream output, string filename, long length, CancellationToken cancellationToken)
         {
             var buffer = new byte[Math.Min(length, BufferSize)];
             var needToRead = length;
@@ -804,6 +800,7 @@ namespace Renci.SshNet
                 RaiseDownloadingEvent(filename, length, length - needToRead);
 
                 needToRead -= read;
+                cancellationToken.ThrowIfCancellationRequested();
             }
             while (needToRead > 0);
 
@@ -818,7 +815,7 @@ namespace Renci.SshNet
             CheckReturnCode(input);
         }
 
-        private void InternalDownload(IChannelSession channel, Stream input, FileSystemInfo fileSystemInfo)
+        private void InternalDownload(IChannelSession channel, Stream input, FileSystemInfo fileSystemInfo, CancellationToken cancellationToken)
         {
             var modifiedTime = DateTime.Now;
             var accessedTime = DateTime.Now;
@@ -894,7 +891,7 @@ namespace Renci.SshNet
 
                     using (var output = fileInfo.OpenWrite())
                     {
-                        InternalDownload(channel, input, output, fileName, length);
+                        InternalDownload(channel, input, output, fileName, length, cancellationToken);
                     }
 
                     fileInfo.LastAccessTime = accessedTime;
