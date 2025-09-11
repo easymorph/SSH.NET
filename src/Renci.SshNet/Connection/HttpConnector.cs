@@ -154,7 +154,7 @@ namespace Renci.SshNet.Connection
             // to be processed by subsequent invocations
             do
             {
-                var bytesRead = SocketAbstraction.Read(socket, data, 0, data.Length, readTimeout);
+                var bytesRead = SocketAbstraction.Read(socket, data, 0, data.Length, readTimeout, out _);
                 if (bytesRead == 0)
                 {
                     // the remote server shut down the socket

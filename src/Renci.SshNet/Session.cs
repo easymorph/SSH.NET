@@ -1980,7 +1980,7 @@ namespace Renci.SshNet
         /// <exception cref="SocketException">The read failed.</exception>
         private static int TrySocketRead(Socket socket, byte[] buffer, int offset, int length)
         {
-            return SocketAbstraction.Read(socket, buffer, offset, length, Timeout.InfiniteTimeSpan);
+            return SocketAbstraction.Read(socket, buffer, offset, length, Timeout.InfiniteTimeSpan, out _);
         }
 
         /// <summary>
@@ -2155,7 +2155,7 @@ namespace Renci.SshNet
 
         private static SshConnectionException CreateConnectionAbortedByServerException()
         {
-            return new SshConnectionException("An established connection was aborted by the server.",
+            return new SshConnectionException("An established connection was aborted by the server (connection with SSH server was closed or socket was disposed).",
             DisconnectReason.ConnectionLost);
         }
 

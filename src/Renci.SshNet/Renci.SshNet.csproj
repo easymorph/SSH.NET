@@ -1,15 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <AssemblyName>Renci.SshNet</AssemblyName>
-    <Product>SSH.NET</Product>
-    <AssemblyTitle>SSH.NET</AssemblyTitle>
-    <TargetFrameworks>net462;netstandard2.0;net8.0;net9.0</TargetFrameworks>
+    <AssemblyName>EasyMorph.SshNet</AssemblyName>
+    <LangVersion>12</LangVersion>
+    <SignAssembly>false</SignAssembly>
+    <TargetFrameworks>net462;net8.0</TargetFrameworks>
   </PropertyGroup>
 
   <PropertyGroup>
     <IsPackable>true</IsPackable>
-    <PackageId>SSH.NET</PackageId>
+    <PackageId>EasyMorph.SshNet</PackageId>
     <Title>SSH.NET</Title>
     <Description>SSH.NET is a Secure Shell (SSH) library for .NET, optimized for parallelism.</Description>
     <Copyright>Copyright © Renci 2010-$([System.DateTime]::UtcNow.Year)</Copyright>
@@ -23,6 +23,10 @@
     <NBGV_ThisAssemblyIncludesPackageVersion>true</NBGV_ThisAssemblyIncludesPackageVersion>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <RunAnalyzersDuringBuild>False</RunAnalyzersDuringBuild>
+    <RunAnalyzersDuringLiveAnalysis>False</RunAnalyzersDuringLiveAnalysis>
+    <EnforceCodeStyleInBuild>False</EnforceCodeStyleInBuild>
+    <EnableNETAnalyzers>False</EnableNETAnalyzers>
   </PropertyGroup>
 
   <Target Name="SetVersionProperties" BeforeTargets="Build" DependsOnTargets="GetBuildVersion">

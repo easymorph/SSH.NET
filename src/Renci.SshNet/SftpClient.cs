@@ -488,6 +488,41 @@ namespace Renci.SshNet
         }
 
         /// <summary>
+        /// Deletes remote file specified by path. If the file is a sybolic link - deletes the link and not the target file.
+        /// </summary>
+        /// <remarks>
+        /// May not work for non-canonical paths.
+        /// </remarks>
+        /// <param name="path">File to be deleted path.</param>
+        /// <exception cref="ArgumentException"><paramref name="path"/> is <b>null</b> or contains only whitespace characters.</exception>
+        /// <exception cref="SshConnectionException">Client is not connected.</exception>
+        /// <exception cref="SftpPathNotFoundException"><paramref name="path"/> was not found on the remote host.</exception>
+        /// <exception cref="SftpPermissionDeniedException">Permission to delete the file was denied by the remote host. <para>-or-</para> A SSH command was denied by the server.</exception>
+        /// <exception cref="SshException">A SSH error where <see cref="Exception.Message"/> is the message from the remote host.</exception>
+        /// <exception cref="ObjectDisposedException">The method was called after the client was disposed.</exception>
+        public void DeleteFileOrSymlink(string path)
+        {
+            CheckDisposed();
+
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                throw new ArgumentException(nameof(path));
+            }
+
+            if (_sftpSession == null)
+            {
+                throw new SshConnectionException("Client not connected.");
+            }
+
+            // This may not work for non-canonical paths since RequestRealPath()
+            // is not called. But we can't call RequestRealPath() because it
+            // resolves symlinks.
+            var fullPath = ((SftpSession)_sftpSession).GetFullRemotePath(path);
+
+            _sftpSession.RequestRemove(fullPath);
+        }
+
+        /// <summary>
         /// Renames remote file from old path to new path.
         /// </summary>
         /// <param name="oldPath">Path to the old file location.</param>
@@ -594,6 +629,33 @@ namespace Renci.SshNet
             var linkFullPath = _sftpSession.GetCanonicalPath(linkPath);
 
             _sftpSession.RequestSymLink(fullPath, linkFullPath);
+        }
+
+        /// <summary>
+        /// Checks if the file on the path is a symbolic link.
+        /// </summary>
+        /// <remarks>
+        /// May not work for non-canonical paths.
+        /// </remarks>
+        /// <param name="path">The path to the file.</param>
+        /// <returns>True is path points to a symbolic link and false otherwise.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="path"/> is <b>null</b>.</exception>
+        /// <exception cref="SshConnectionException">Client is not connected.</exception>
+        /// <exception cref="SftpPathNotFoundException"><paramref name="path"/> was not found on the remote host.</exception>
+        /// <exception cref="ObjectDisposedException">The method was called after the client was disposed.</exception>
+        public bool IsSymbolicLink(string path)
+        {
+            CheckDisposed();
+
+            if (_sftpSession == null)
+                throw new SshConnectionException("Client not connected.");
+
+            // This may not work for non-canonical paths since RequestRealPath()
+            // is not called. But we can't call RequestRealPath() because it
+            // resolves symlinks.
+            var fullPath = ((SftpSession)_sftpSession).GetFullRemotePath(path);
+
+            return _sftpSession.RequestLStat(fullPath).IsSymbolicLink;
         }
 
         /// <summary>
